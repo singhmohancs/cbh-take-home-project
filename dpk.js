@@ -1,19 +1,41 @@
-const crypto = require("crypto");
+const crypto = require('crypto')
 
+/**
+ * This function is used to safely convert a value to a string.
+ * 
+ * Exceptions - if value is passed as function, recursive object or large object. Throws exception
+ * 
+ * @param {*} value 
+ * @returns string 
+ */
+const safeConvertToString = (value = '') => {
+  try {
+    return typeof value === 'string' ? value : JSON.stringify(value)
+  } catch (err) {
+    throw new Error('Provided input is not input', err)
+  }
+}
+
+/**
+ * function generates or returns updated Hash string from given input
+ * 
+ * @param {Object | String} event 
+ * @returns string
+ */
 exports.deterministicPartitionKey = (event) => {
-  const MAX_PARTITION_KEY_LENGTH = 256;
+  const MAX_LENGTH_PARTITION_KEY = 256
+  const DEFAULT_PARTITION_KEY = '0'
+  let partitionKey = event?.partitionKey || event
 
-  // return the PartitionKey if exists event.partitionKey
-  if (event && event.partitionKey) {
-    return event.partitionKey;
+  if (!event) return DEFAULT_PARTITION_KEY
+  partitionKey = safeConvertToString(partitionKey)
+
+  if (event?.partitionKey) {
+    if(partitionKey.length > MAX_LENGTH_PARTITION_KEY){
+      return crypto.createHash('sha3-512').update(partitionKey).digest('hex')
+    }
+    return partitionKey;
   }
 
-  const data = JSON.stringify(event || "");
-  let candidate = crypto.createHash("sha3-512").update(data).digest("hex"); // returns string always
-
-  if (candidate.length > MAX_PARTITION_KEY_LENGTH) {
-    candidate = crypto.createHash("sha3-512").update(candidate).digest("hex");
-  }
-
-  return candidate;
-};
+  return crypto.createHash('sha3-512').update(partitionKey).digest('hex')
+}

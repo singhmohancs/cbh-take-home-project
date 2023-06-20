@@ -10,33 +10,15 @@ You will be graded on the exhaustiveness and quality of your unit tests, the dep
 
 ## Your Explanation Here
 
-- Remove the following lines of code as they are unnecessary writtern. If the `event.PartitionKey` exists, return it and thats it.
-```
-// remove
-  if (event) {
-    if (event.partitionKey) {
-      candidate = event.partitionKey;
-    } else {
-      const data = JSON.stringify(event);
-      candidate = crypto.createHash("sha3-512").update(data).digest("hex");
-    }
-  }
 
-	// Change to 
-	 if (event && event.partitionKey) {
-    return event.partitionKey;
-  }
+This function impements three simple usecases:
 
-```
+- Return "0" if nothing passed.
+- Regenerate the PartitionKey if it exceeds the MAX_LENGTH_PARTITION_KEY else returns it.
+- Returns newly created PartitionKey from given input if PartitionKey is not passed
 
-- Remove unnecessary constant `TRIVIAL_PARTITION_KEY`, no need of this as it equal when candidate is empty string.
+- `let partitionKey = event?.partitionKey || event` stores value of partitionKey or given input value(event)
 
-- No need to convert the candiate to `JSON.stringify` everytime. `crypto.createHash("sha3-512").update(data).digest("hex");` alway returns hash string. so no need to convert it again to string.
-```
-// Remove it 
-if (typeof candidate !== "string") {
-    candidate = JSON.stringify(candidate);
-  }
-```
+- `partitionKey = safeConvertToString(partitionKey)` checks and converts given value to string.
 
 and thats it.
